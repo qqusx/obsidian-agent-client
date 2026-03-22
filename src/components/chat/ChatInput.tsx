@@ -314,7 +314,7 @@ export function ChatInput({
 					});
 				} catch (error) {
 					console.error("Failed to convert image:", error);
-					new Notice("[Agent Client] Failed to attach image");
+					new Notice("[Agent Client] failed to attach image"); // eslint-disable-line obsidianmd/ui/sentence-case
 				}
 			}
 			return result;
@@ -337,7 +337,7 @@ export function ChatInput({
 			for (const file of files) {
 				const filePath = webUtils.getPathForFile(file);
 				if (!filePath) {
-					new Notice("[Agent Client] Could not determine file path");
+					new Notice("[Agent Client] could not determine file path"); // eslint-disable-line obsidianmd/ui/sentence-case
 					continue;
 				}
 				result.push({
@@ -401,9 +401,7 @@ export function ChatInput({
 					if (converted.length > 0) {
 						newAttachments.push(...converted);
 					} else {
-						new Notice(
-							"[Agent Client] This agent does not support image paste. Try drag & drop instead.",
-						);
+						new Notice("[Agent Client] this agent does not support image paste. Try drag & drop instead."); // eslint-disable-line obsidianmd/ui/sentence-case
 					}
 				}
 			}
