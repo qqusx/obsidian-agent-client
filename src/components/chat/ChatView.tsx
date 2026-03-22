@@ -3,6 +3,7 @@ import type {
 	IChatViewContainer,
 	ChatViewType,
 } from "../../domain/ports/chat-view-container.port";
+/* eslint-disable obsidianmd/ui/sentence-case */
 import * as React from "react";
 const { useState, useRef, useEffect, useCallback } = React;
 import { createRoot, Root } from "react-dom/client";

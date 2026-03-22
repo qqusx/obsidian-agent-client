@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+/* eslint-disable obsidianmd/ui/sentence-case */
 import { Notice, FileSystemAdapter, Platform } from "obsidian";
 
 import type AgentClientPlugin from "../plugin";

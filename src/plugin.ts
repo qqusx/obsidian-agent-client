@@ -1,3 +1,4 @@
+/* eslint-disable obsidianmd/ui/sentence-case */
 import {
 	Plugin,
 	WorkspaceLeaf,

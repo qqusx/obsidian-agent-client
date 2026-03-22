@@ -3,6 +3,7 @@ import type { ChatMessage } from "../domain/models/chat-message";
 import type { ChatSession } from "../domain/models/chat-session";
 import { ChatExporter } from "../shared/chat-exporter";
 import { getLogger } from "../shared/logger";
+/* eslint-disable obsidianmd/ui/sentence-case */
 import { Notice } from "obsidian";
 import type AgentClientPlugin from "../plugin";
 
