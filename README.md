@@ -110,3 +110,25 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=RAIT-09/obsidian-agent-client&type=Date)](https://www.star-history.com/#RAIT-09/obsidian-agent-client&Date)
+
+## changelog:
+I added a searchable model picker to the chat input.
+
+ What changed:
+ - Clicking the model selector now opens a small popover
+ - It includes a search field
+ - Typing filters models by:
+     - model name
+     - model ID
+     - description
+ - Selecting a model still applies it immediately
+ - Click outside / Escape closes the picker
+
+ Files changed:
+ - src/components/chat/ChatInput.tsx
+ - styles.css
+
+ If you want, I can also add:
+ - keyboard navigation in the filtered list
+ - “clear search” button
+ - fuzzy matching instead of simple text matching
