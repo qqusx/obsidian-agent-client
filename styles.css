@@ -951,18 +951,41 @@ If your plugin does not need CSS, delete this file.
 
 /* Model Selector (experimental) */
 .agent-client-model-selector {
+	position: relative;
 	display: inline-flex;
 	align-items: center;
-	padding: 0 4px;
-	border-radius: 4px;
-	cursor: pointer;
-	transition: background-color 0.1s ease;
-	height: 20px;
-	max-width: 120px;
 }
 
-.agent-client-model-selector:hover {
+.agent-client-model-selector-trigger {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	padding: 0 4px;
+	height: 20px;
+	max-width: 160px;
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--text-faint);
+	cursor: pointer;
+	outline: none;
+	box-shadow: none;
+	appearance: none;
+}
+
+.agent-client-model-selector:hover .agent-client-model-selector-trigger,
+.agent-client-model-selector-trigger:hover,
+.agent-client-model-selector-trigger:focus-visible {
 	background-color: var(--background-modifier-hover);
+}
+
+.agent-client-model-selector-label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 11px;
+	line-height: 1;
 }
 
 .agent-client-model-selector-icon {
@@ -970,8 +993,7 @@ If your plugin does not need CSS, delete this file.
 	align-items: center;
 	pointer-events: none;
 	color: var(--text-faint);
-	margin-left: 2px;
-	order: 2;
+	flex: 0 0 auto;
 }
 
 .agent-client-model-selector-icon svg {
@@ -979,34 +1001,86 @@ If your plugin does not need CSS, delete this file.
 	height: 12px;
 }
 
-.agent-client-model-selector select.dropdown {
-	padding: 0 !important;
-	margin: 0 !important;
-	border: none !important;
-	border-radius: 0 !important;
-	background: none !important;
-	background-color: transparent !important;
-	background-image: none !important;
-	box-shadow: none !important;
-	color: var(--text-faint) !important;
-	font-size: 11px !important;
-	cursor: pointer !important;
-	outline: none !important;
-	appearance: none !important;
-	-webkit-appearance: none !important;
-	-moz-appearance: none !important;
-	order: 1;
-	max-width: 100px;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+.agent-client-model-selector-popover {
+	position: absolute;
+	top: calc(100% + 6px);
+	right: 0;
+	z-index: 20;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 320px;
+	max-width: min(360px, calc(100vw - 24px));
+	padding: 8px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	background: var(--background-primary);
+	box-shadow: var(--shadow-s);
 }
 
-.agent-client-model-selector select.dropdown:hover,
-.agent-client-model-selector select.dropdown:focus {
-	color: var(--text-faint) !important;
-	background-color: transparent !important;
-	box-shadow: none !important;
+.agent-client-model-selector-search {
+	width: 100%;
+	padding: 6px 8px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-secondary);
+	color: var(--text-normal);
+	font-size: 12px;
+	box-shadow: none;
+	outline: none;
+}
+
+.agent-client-model-selector-search:focus {
+	border-color: var(--interactive-accent);
+	box-shadow: 0 0 0 1px var(--interactive-accent);
+}
+
+.agent-client-model-selector-list {
+	max-height: 260px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.agent-client-model-selector-item {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	width: 100%;
+	padding: 8px;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--text-normal);
+	text-align: left;
+	cursor: pointer;
+}
+
+.agent-client-model-selector-item:hover,
+.agent-client-model-selector-item.agent-client-selected {
+	background: var(--background-modifier-hover);
+}
+
+.agent-client-model-selector-item-name {
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.agent-client-model-selector-item-id,
+.agent-client-model-selector-item-description {
+	font-size: 11px;
+	color: var(--text-muted);
+	line-height: 1.25;
+	word-break: break-word;
+}
+
+.agent-client-model-selector-empty {
+	padding: 10px 8px;
+	color: var(--text-muted);
+	font-size: 12px;
+	text-align: center;
 }
 
 /* Config option selector (configOptions API - supersedes mode/model selectors) */

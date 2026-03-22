@@ -1,5 +1,5 @@
 import * as React from "react";
-const { useRef, useState, useEffect, useCallback } = React;
+const { useRef, useState, useEffect, useCallback, useMemo } = React;
 import { setIcon, DropdownComponent, Notice } from "obsidian";
 
 import type AgentClientPlugin from "../../plugin";
@@ -227,12 +227,15 @@ export function ChatInput({
 	const sendButtonRef = useRef<HTMLButtonElement>(null);
 	const modeDropdownRef = useRef<HTMLDivElement>(null);
 	const modeDropdownInstance = useRef<DropdownComponent | null>(null);
-	const modelDropdownRef = useRef<HTMLDivElement>(null);
-	const modelDropdownInstance = useRef<DropdownComponent | null>(null);
+	const modelPickerRef = useRef<HTMLDivElement>(null);
+	const modelSearchInputRef = useRef<HTMLInputElement>(null);
 	const configOptionsRef = useRef<HTMLDivElement>(null);
 	const configDropdownInstances = useRef<Map<string, DropdownComponent>>(
 		new Map(),
 	);
+
+	const [isModelPickerOpen, setIsModelPickerOpen] = useState(false);
+	const [modelSearchQuery, setModelSearchQuery] = useState("");
 
 	// Clear attached files when agent changes
 	useEffect(() => {
@@ -974,62 +977,66 @@ export function ChatInput({
 	const onModelChangeRef = useRef(onModelChange);
 	onModelChangeRef.current = onModelChange;
 
-	// Initialize Model dropdown (only when availableModels change)
-	const availableModels = models?.availableModels;
+	const availableModels = models?.availableModels ?? [];
 	const currentModelId = models?.currentModelId;
+	const currentModel = useMemo(
+		() =>
+			availableModels.find((model) => model.modelId === currentModelId) ??
+			null,
+		[availableModels, currentModelId],
+	);
+	const filteredModels = useMemo(() => {
+		const query = modelSearchQuery.trim().toLowerCase();
+		if (!query) return availableModels;
+
+		return availableModels.filter((model) => {
+			return (
+				model.name.toLowerCase().includes(query) ||
+				model.modelId.toLowerCase().includes(query) ||
+				(model.description?.toLowerCase().includes(query) ?? false)
+			);
+		});
+	}, [availableModels, modelSearchQuery]);
 
 	useEffect(() => {
-		const containerEl = modelDropdownRef.current;
-		if (!containerEl) return;
+		if (!isModelPickerOpen) return;
 
-		// Only show dropdown if there are multiple models
-		if (!availableModels || availableModels.length <= 1) {
-			// Clean up existing dropdown if models become unavailable
-			if (modelDropdownInstance.current) {
-				containerEl.empty();
-				modelDropdownInstance.current = null;
-			}
-			return;
-		}
-
-		// Create dropdown if not exists
-		if (!modelDropdownInstance.current) {
-			const dropdown = new DropdownComponent(containerEl);
-			modelDropdownInstance.current = dropdown;
-
-			// Add options
-			for (const model of availableModels) {
-				dropdown.addOption(model.modelId, model.name);
-			}
-
-			// Set initial value
-			if (currentModelId) {
-				dropdown.setValue(currentModelId);
-			}
-
-			// Handle change - use ref to avoid recreating dropdown on callback change
-			dropdown.onChange((value) => {
-				if (onModelChangeRef.current) {
-					onModelChangeRef.current(value);
-				}
-			});
-		}
-
-		// Cleanup on unmount or when availableModels change
-		return () => {
-			if (modelDropdownInstance.current) {
-				containerEl.empty();
-				modelDropdownInstance.current = null;
+		const handlePointerDown = (event: MouseEvent) => {
+			if (
+				modelPickerRef.current &&
+				!modelPickerRef.current.contains(event.target as Node)
+			) {
+				setIsModelPickerOpen(false);
 			}
 		};
-	}, [availableModels]);
 
-	// Update dropdown value when currentModelId changes (separate effect)
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				setIsModelPickerOpen(false);
+			}
+		};
+
+		document.addEventListener("mousedown", handlePointerDown);
+		document.addEventListener("keydown", handleKeyDown);
+		return () => {
+			document.removeEventListener("mousedown", handlePointerDown);
+			document.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [isModelPickerOpen]);
+
 	useEffect(() => {
-		if (modelDropdownInstance.current && currentModelId) {
-			modelDropdownInstance.current.setValue(currentModelId);
+		if (isModelPickerOpen) {
+			modelSearchInputRef.current?.focus();
+			modelSearchInputRef.current?.select();
 		}
-	}, [currentModelId]);
+	}, [isModelPickerOpen]);
+
+	useEffect(() => {
+		if (!models || models.availableModels.length <= 1) {
+			setIsModelPickerOpen(false);
+			setModelSearchQuery("");
+		}
+	}, [models]);
 
 	// Stable reference for configOption callback
 	const onConfigOptionChangeRef = useRef(onConfigOptionChange);
@@ -1291,31 +1298,71 @@ export function ChatInput({
 								</div>
 							)}
 
-							{/* Legacy Model Selector */}
-							{models && models.availableModels.length > 1 && (
-								<div
-									className="agent-client-model-selector"
-									title={
-										models.availableModels.find(
-											(m) =>
-												m.modelId ===
-												models.currentModelId,
-										)?.description ?? "Select model"
-									}
-								>
-									<div ref={modelDropdownRef} />
-									<span
-										className="agent-client-model-selector-icon"
-										ref={(el) => {
-											if (el) setIcon(el, "chevron-down");
-										}}
-									/>
-								</div>
-							)}
-						</>
+																{/* Legacy Model Selector */}
+			{models && models.availableModels.length > 1 && (
+				<div className="agent-client-model-selector" ref={modelPickerRef} title={currentModel?.description ?? "Select model"}>
+					<button
+						type="button"
+						className="agent-client-model-selector-trigger"
+						onClick={() => {
+							setIsModelPickerOpen((open) => {
+								const nextOpen = !open;
+								if (nextOpen) setModelSearchQuery("");
+								return nextOpen;
+							});
+						}}
+						aria-expanded={isModelPickerOpen}
+						aria-label="Select model"
+					>
+						<span className="agent-client-model-selector-label">
+							{currentModel?.name ?? "Select model"}
+						</span>
+						<span className="agent-client-model-selector-icon" ref={(el) => { if (el) setIcon(el, "chevron-down"); }} />
+					</button>
+					{isModelPickerOpen && (
+						<div className="agent-client-model-selector-popover">
+							<input
+								ref={modelSearchInputRef}
+								type="text"
+								className="agent-client-model-selector-search"
+								placeholder="Search models..."
+								value={modelSearchQuery}
+								onChange={(event) => setModelSearchQuery(event.target.value)}
+							/>
+							<div className="agent-client-model-selector-list">
+								{filteredModels.length > 0 ? (
+									filteredModels.map((model) => {
+										const isSelected = model.modelId === currentModelId;
+										return (
+											<button
+												key={model.modelId}
+												type="button"
+												className={`agent-client-model-selector-item ${isSelected ? "agent-client-selected" : ""}`}
+												onMouseDown={(event) => {
+													event.preventDefault();
+													setIsModelPickerOpen(false);
+													setModelSearchQuery("");
+													onModelChangeRef.current?.(model.modelId);
+												}}
+											title={model.description ?? model.name}
+										>
+											<span className="agent-client-model-selector-item-name">{model.name}</span>
+											<span className="agent-client-model-selector-item-id">{model.modelId}</span>
+											{model.description && (
+												<span className="agent-client-model-selector-item-description">{model.description}</span>
+											)}
+										</button>
+										);
+									})
+								) : (
+									<div className="agent-client-model-selector-empty">No models match your search.</div>
+								)}
+							</div>
+						</div>
 					)}
-
-					{/* Send/Stop Button */}
+				</div>
+			)}
+			{/* Send/Stop Button */}
 					<button
 						ref={sendButtonRef}
 						onClick={() => void handleSendOrStop()}
